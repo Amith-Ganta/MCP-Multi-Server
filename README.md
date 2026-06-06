@@ -26,24 +26,87 @@ The design goal is graceful degradation: each server connects independently, so
 one failing or unavailable server is reported and skipped rather than taking the
 whole app down.
 
-## Architecture
+## 🏗️ Architecture
 
-Two front ends (`app.py` and `cli.py`) share `mcp_config.py`, which binds the
-tools from each MCP server to one OpenAI model:
+### System overview
 
-| Server         | Type                 | Runs where                              |
-| -------------- | -------------------- | --------------------------------------- |
-| `math`         | local STDIO          | anywhere (portable)                     |
-| `expense`      | local STDIO + SQLite | anywhere (reads/writes `databases.db`)  |
-| `manim-server` | local STDIO          | Windows only                            |
+```mermaid
+flowchart LR
+    subgraph CLIENTS["🖥️ Front ends"]
+        WEB["Streamlit UI<br/><i>app.py</i>"]
+        CLI["CLI<br/><i>cli.py</i>"]
+    end
+
+    subgraph CORE["🧩 mcp_config.py"]
+        CFG{"TLS · secrets<br/>server registry<br/>fault-tolerant connector"}
+        LLM["🧠 OpenAI model<br/><i>LangChain · bind_tools</i>"]
+    end
+
+    subgraph SERVERS["⚙️ FastMCP servers · stdio"]
+        MATH["🧮 math<br/><i>18 tools</i>"]
+        EXP["💰 expense<br/><i>6 tools</i>"]
+        MANIM["🎬 manim-server<br/><i>Windows only</i>"]
+    end
+
+    DB[("🗄️ SQLite<br/>databases.db")]
+    MP4["🎞️ rendered .mp4"]
+
+    WEB & CLI --> CFG
+    CFG -- "discover + connect each<br/>server independently" --> SERVERS
+    CFG --> LLM
+    LLM -- "tool calls" --> SERVERS
+    EXP --> DB
+    MANIM --> MP4
+
+    classDef client fill:#EEF2FF,stroke:#6366F1,stroke-width:1px,color:#1E1B4B;
+    classDef core fill:#FEF3C7,stroke:#F59E0B,stroke-width:1px,color:#78350F;
+    classDef tool fill:#ECFDF5,stroke:#10B981,stroke-width:1px,color:#064E3B;
+    classDef store fill:#FCE7F3,stroke:#EC4899,stroke-width:1px,color:#831843;
+    class WEB,CLI client;
+    class CFG,LLM core;
+    class MATH,EXP,MANIM tool;
+    class DB,MP4 store;
+```
 
 Each server is a standalone [FastMCP](https://github.com/jlowin/fastmcp) process
 launched over **stdio**, and connects **independently** — if one fails (missing
-token, Windows-only, offline), it is shown as failed in the sidebar and skipped,
-so the app keeps working. `mcp_config.py` discovers which servers can run in the
-current environment, connects to each one separately, binds the collected tools
-to the model, and exposes shared helpers (`build_servers`, `connect_tools`,
-`get_model`, `get_secret`).
+file, Windows-only, offline), it is shown as failed in the sidebar and skipped,
+so the app keeps working.
+
+### Request lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Front as 🖥️ Streamlit / CLI
+    participant LLM as 🧠 OpenAI model
+    participant Server as ⚙️ FastMCP server
+    participant Data as 🗄️ SQLite / files
+
+    User->>Front: "What is 12 factorial, and total spent on food?"
+    Front->>LLM: messages + bound tools
+    LLM-->>Front: tool_calls → factorial, total_spent
+    Front->>Server: invoke tools over stdio
+    Server->>Data: read / compute
+    Data-->>Server: results
+    Server-->>Front: tool outputs
+    Front->>LLM: tool results
+    LLM-->>Front: final composed answer
+    Front-->>User: "✅ 12! = 479001600 · €120 on food"
+```
+
+### Tech stack
+
+| Layer | Technology | Role |
+|:--|:--|:--|
+| 🧠 **Runtime** | Python ≥ 3.11 | Language runtime |
+| 🔌 **Protocol** | FastMCP · MCP over stdio | Standalone tool servers, one subprocess each |
+| 🤖 **LLM** | OpenAI + LangChain | Tool-calling orchestration (`bind_tools`) |
+| 🖥️ **UI** | Streamlit · CLI | Two front ends sharing one config layer |
+| 🗄️ **Data** | SQLite | Local expense store (`databases.db`) |
+| 📦 **Tooling** | uv · ruff · pytest | Deps, lint, and the test suite |
+| ☁️ **Hosting** | Streamlit Community Cloud | Managed deployment of the web app |
 
 ## Tool catalog
 
