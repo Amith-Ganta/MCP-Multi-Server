@@ -28,28 +28,19 @@ whole app down.
 
 ## Architecture
 
-```
-                ┌──────────────┐        ┌──────────────┐
-   Web UI ─────▶│   app.py     │        │   cli.py     │◀──── Terminal
-                └──────┬───────┘        └──────┬───────┘
-                       │                       │
-                       └────────┬──────────────┘
-                                ▼
-                        ┌───────────────┐
-                        │ mcp_config.py │  TLS · secrets · server registry
-                        │               │  + fault-tolerant connector
-                        └───────┬───────┘
-                                │  bind tools → OpenAI (LangChain)
-              ┌─────────────────┼──────────────────────┐
-              ▼ stdio           ▼ stdio                 ▼ stdio (Windows-only)
-      ┌──────────────┐  ┌──────────────────┐   ┌──────────────────┐
-      │ math_server  │  │ expense_server   │   │  manim_server    │
-      │ 18 tools     │  │ SQLite, 6 tools  │   │  render → mp4    │
-      └──────────────┘  └──────────────────┘   └──────────────────┘
-```
+Two front ends (`app.py` and `cli.py`) share `mcp_config.py`, which binds the
+tools from each MCP server to one OpenAI model:
+
+| Server         | Type                 | Runs where                              |
+| -------------- | -------------------- | --------------------------------------- |
+| `math`         | local STDIO          | anywhere (portable)                     |
+| `expense`      | local STDIO + SQLite | anywhere (reads/writes `databases.db`)  |
+| `manim-server` | local STDIO          | Windows only                            |
 
 Each server is a standalone [FastMCP](https://github.com/jlowin/fastmcp) process
-launched over **stdio**. `mcp_config.py` discovers which servers can run in the
+launched over **stdio**, and connects **independently** — if one fails (missing
+token, Windows-only, offline), it is shown as failed in the sidebar and skipped,
+so the app keeps working. `mcp_config.py` discovers which servers can run in the
 current environment, connects to each one separately, binds the collected tools
 to the model, and exposes shared helpers (`build_servers`, `connect_tools`,
 `get_model`, `get_secret`).
