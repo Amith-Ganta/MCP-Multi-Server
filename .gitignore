@@ -1,0 +1,18 @@
+# Secrets — NEVER commit these
+.env
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# uv
+# (uv.lock is kept on purpose for reproducible local installs)
+
+# Manim output
+media/
+
+# Local expense database (personal data; auto-created on first run)
+databases.db
