@@ -1,13 +1,23 @@
-# expense_server.py — local FastMCP expense tracker backed by SQLite.
-# ---------------------------------------------------------------------------
-# Reads and writes into `databases.db` (same folder as this file), so it works
-# the same locally and on the cloud. Launch over STDIO from the chat client.
-#
-# Run standalone:   uv run fastmcp run expense_server.py
-# ---------------------------------------------------------------------------
+"""Expense-tracker MCP server.
+
+A local Model Context Protocol (MCP) server backed by SQLite. It exposes six
+tools (three write, three read) and persists to ``databases.db`` alongside this
+file, so it behaves the same on a developer machine and on the cloud.
+
+Launched over STDIO by the ``MultiServerMCPClient`` in ``mcp_config.py``.
+
+Run standalone for a quick check::
+
+    uv run fastmcp run servers/expense_server.py
+
+Note: on Streamlit Community Cloud the filesystem is ephemeral, so the database
+resets on restart. For durable cloud storage, point ``DB_PATH`` at a hosted
+database (e.g. Postgres or Turso) instead of local SQLite.
+"""
 
 import sqlite3
-from datetime import date as _date, datetime
+from datetime import date as _date
+from datetime import datetime
 from pathlib import Path
 
 from fastmcp import FastMCP

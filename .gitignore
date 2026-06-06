@@ -5,8 +5,18 @@
 # Python
 __pycache__/
 *.pyc
+*.egg-info/
 .venv/
 venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
 
 # uv
 # (uv.lock is kept on purpose for reproducible local installs)

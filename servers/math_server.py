@@ -1,16 +1,16 @@
-"""
-Math MCP Server
-================
-A local Model Context Protocol (MCP) server exposing a rich set of
-mathematical operations (far more than the basic four) over FastMCP.
+"""Math MCP server.
 
-Run it locally with:
+A local Model Context Protocol (MCP) server exposing 18 mathematical
+operations over FastMCP — arithmetic, powers/roots, combinatorics, logarithms,
+trigonometry, and simple aggregates.
 
-    uv run fastmcp run math_server.py
+The ``MultiServerMCPClient`` configured in ``mcp_config.py`` (used by both
+``cli.py`` and ``app.py``) launches this file over STDIO, so it runs with the
+STDIO transport by default (see ``__main__``).
 
-The MultiServerMCPClient configured in mcp_config.py (used by cli.py and
-app.py) launches it over STDIO, so by default this file runs with the STDIO
-transport (see __main__ below).
+Run standalone for a quick check::
+
+    uv run fastmcp run servers/math_server.py
 """
 
 import math

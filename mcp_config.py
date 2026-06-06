@@ -32,8 +32,9 @@ load_dotenv()
 # Paths
 # --------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent
-MATH_SERVER = PROJECT_ROOT / "math_server.py"
-EXPENSE_SERVER = PROJECT_ROOT / "expense_server.py"
+SERVERS_DIR = PROJECT_ROOT / "servers"
+MATH_SERVER = SERVERS_DIR / "math_server.py"
+EXPENSE_SERVER = SERVERS_DIR / "expense_server.py"
 
 # Windows-only Manim server (mirrors the local Claude Desktop configuration).
 MANIM_PYTHON = Path(r"C:\Users\HP\manim-env\Scripts\python.exe")

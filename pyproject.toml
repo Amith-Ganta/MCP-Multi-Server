@@ -1,9 +1,19 @@
 [project]
-name = "mcp-client"
-version = "0.1.0"
-description = "A multi-server MCP chat client (CLI + Streamlit) with math, expense, and animation tools."
+name = "mcp-multi-server"
+version = "1.0.0"
+description = "A multi-server MCP chat assistant (Streamlit + CLI) over math, expense, and animation tools."
 readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Amith Ganta" }]
+keywords = ["mcp", "model-context-protocol", "langchain", "streamlit", "openai", "fastmcp"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Framework :: Streamlit",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "fastmcp>=3.4.1",
     "langchain>=1.3.4",
@@ -13,3 +23,31 @@ dependencies = [
     "streamlit>=1.58.0",
     "truststore>=0.10.4",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+]
+
+[project.urls]
+Repository = "https://github.com/Amith-Ganta/MCP-Multi-Server"
+"Live demo" = "https://mcp-multi-server-deployment.streamlit.app/"
+
+[tool.uv]
+# This is a deployable application, not a distributable library.
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, pyupgrade, flake8-bugbear, comprehensions.
+select = ["E", "F", "I", "UP", "B", "C4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+asyncio_mode = "auto"
